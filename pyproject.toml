@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ran-kpi-root-cause-analyzer"
+version = "0.1.0"
+description = "RAN KPI degradation and root-cause analysis toolkit"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Omid Rahimi" }]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
