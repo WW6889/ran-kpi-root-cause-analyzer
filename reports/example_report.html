@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RAN KPI Root-Cause Analysis Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; color: #1f2933; line-height: 1.45; }
+    h1, h2 { color: #183b56; }
+    .summary { background: #eef6f6; border-left: 5px solid #2f6f73; padding: 16px 20px; margin: 20px 0; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .metric { border: 1px solid #d9e2ec; padding: 14px; border-radius: 6px; background: #fff; }
+    .metric strong { display: block; font-size: 24px; color: #0b7285; }
+    .data-table { border-collapse: collapse; width: 100%; margin: 12px 0 24px; font-size: 14px; }
+    .data-table th { background: #183b56; color: white; text-align: left; }
+    .data-table th, .data-table td { border: 1px solid #d9e2ec; padding: 8px 10px; }
+    img { max-width: 100%; border: 1px solid #d9e2ec; margin: 10px 0 26px; }
+    code { background: #f1f5f8; padding: 2px 5px; }
+  </style>
+</head>
+<body>
+  <h1>RAN KPI Root-Cause Analysis Report</h1>
+  <div class="summary">
+    <strong>Executive summary.</strong>
+    Analyzed 1,152 KPI samples from 12 cells.
+    155 samples were classified as degraded. The most affected cell is
+    <code>Cell_002</code> with dominant root cause
+    <code>healthy_baseline</code>.
+  </div>
+  <div class="grid">
+    <div class="metric"><strong>12</strong>Cells analyzed</div>
+    <div class="metric"><strong>155</strong>Degraded samples</div>
+    <div class="metric"><strong>168</strong>Anomaly flags</div>
+    <div class="metric"><strong>2026-01-05 00:00:00</strong>Start time</div>
+  </div>
+
+  <h2>Dataset Overview</h2>
+  <table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>cell_id</th>
+      <th>rsrp_dbm</th>
+      <th>sinr_db</th>
+      <th>prb_utilization_dl</th>
+      <th>throughput_dl_mbps</th>
+      <th>latency_ms</th>
+      <th>degraded_ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Cell_002</td>
+      <td>-96.164</td>
+      <td>15.089</td>
+      <td>51.263</td>
+      <td>58.941</td>
+      <td>25.458</td>
+      <td>0.208</td>
+    </tr>
+    <tr>
+      <td>Cell_005</td>
+      <td>-92.454</td>
+      <td>15.107</td>
+      <td>51.099</td>
+      <td>62.948</td>
+      <td>25.545</td>
+      <td>0.208</td>
+    </tr>
+    <tr>
+      <td>Cell_009</td>
+      <td>-92.669</td>
+      <td>14.754</td>
+      <td>57.013</td>
+      <td>62.404</td>
+      <td>30.727</td>
+      <td>0.208</td>
+    </tr>
+    <tr>
+      <td>Cell_010</td>
+      <td>-92.182</td>
+      <td>14.657</td>
+      <td>52.204</td>
+      <td>63.376</td>
+      <td>25.873</td>
+      <td>0.208</td>
+    </tr>
+    <tr>
+      <td>Cell_004</td>
+      <td>-92.055</td>
+      <td>14.997</td>
+      <td>57.913</td>
+      <td>64.552</td>
+      <td>31.579</td>
+      <td>0.188</td>
+    </tr>
+    <tr>
+      <td>Cell_007</td>
+      <td>-95.819</td>
+      <td>14.749</td>
+      <td>52.570</td>
+      <td>58.108</td>
+      <td>25.405</td>
+      <td>0.188</td>
+    </tr>
+    <tr>
+      <td>Cell_008</td>
+      <td>-91.819</td>
+      <td>12.223</td>
+      <td>52.162</td>
+      <td>60.632</td>
+      <td>25.551</td>
+      <td>0.188</td>
+    </tr>
+    <tr>
+      <td>Cell_003</td>
+      <td>-92.158</td>
+      <td>12.419</td>
+      <td>52.654</td>
+      <td>61.449</td>
+      <td>25.028</td>
+      <td>0.177</td>
+    </tr>
+    <tr>
+      <td>Cell_001</td>
+      <td>-92.168</td>
+      <td>14.789</td>
+      <td>49.822</td>
+      <td>68.480</td>
+      <td>25.484</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>Cell_006</td>
+      <td>-92.084</td>
+      <td>15.168</td>
+      <td>50.907</td>
+      <td>70.732</td>
+      <td>24.872</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>Cell_011</td>
+      <td>-91.764</td>
+      <td>14.729</td>
+      <td>52.881</td>
+      <td>68.894</td>
+      <td>25.225</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <td>Cell_012</td>
+      <td>-91.689</td>
+      <td>15.227</td>
+      <td>49.365</td>
+      <td>70.108</td>
+      <td>25.401</td>
+      <td>0.000</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>Degraded Cells and Root Causes</h2>
+  <table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>cell_id</th>
+      <th>dominant_root_cause</th>
+      <th>samples</th>
+      <th>degraded_samples</th>
+      <th>dominant_share</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Cell_002</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>20</td>
+      <td>0.792</td>
+    </tr>
+    <tr>
+      <td>Cell_003</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>20</td>
+      <td>0.792</td>
+    </tr>
+    <tr>
+      <td>Cell_005</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>20</td>
+      <td>0.792</td>
+    </tr>
+    <tr>
+      <td>Cell_009</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>20</td>
+      <td>0.792</td>
+    </tr>
+    <tr>
+      <td>Cell_010</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>20</td>
+      <td>0.792</td>
+    </tr>
+    <tr>
+      <td>Cell_008</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>19</td>
+      <td>0.802</td>
+    </tr>
+    <tr>
+      <td>Cell_004</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>18</td>
+      <td>0.812</td>
+    </tr>
+    <tr>
+      <td>Cell_007</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>18</td>
+      <td>0.812</td>
+    </tr>
+    <tr>
+      <td>Cell_001</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>0</td>
+      <td>1.000</td>
+    </tr>
+    <tr>
+      <td>Cell_006</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>0</td>
+      <td>1.000</td>
+    </tr>
+    <tr>
+      <td>Cell_011</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>0</td>
+      <td>1.000</td>
+    </tr>
+    <tr>
+      <td>Cell_012</td>
+      <td>healthy_baseline</td>
+      <td>96</td>
+      <td>0</td>
+      <td>1.000</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>Ranked KPI Contributors</h2>
+  <table border="1" class="dataframe data-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>kpi</th>
+      <th>importance</th>
+      <th>direction</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>throughput_dl_mbps</td>
+      <td>2.381</td>
+      <td>lower</td>
+    </tr>
+    <tr>
+      <td>call_drop_rate</td>
+      <td>1.873</td>
+      <td>higher</td>
+    </tr>
+    <tr>
+      <td>latency_ms</td>
+      <td>1.306</td>
+      <td>higher</td>
+    </tr>
+    <tr>
+      <td>active_users</td>
+      <td>1.295</td>
+      <td>higher</td>
+    </tr>
+    <tr>
+      <td>prb_utilization_dl</td>
+      <td>1.270</td>
+      <td>higher</td>
+    </tr>
+    <tr>
+      <td>handover_success_rate</td>
+      <td>1.226</td>
+      <td>lower</td>
+    </tr>
+    <tr>
+      <td>packet_loss_rate</td>
+      <td>1.179</td>
+      <td>higher</td>
+    </tr>
+    <tr>
+      <td>cqi</td>
+      <td>0.881</td>
+      <td>lower</td>
+    </tr>
+    <tr>
+      <td>sinr_db</td>
+      <td>0.871</td>
+      <td>lower</td>
+    </tr>
+    <tr>
+      <td>rsrp_dbm</td>
+      <td>0.791</td>
+      <td>lower</td>
+    </tr>
+  </tbody>
+</table>
+
+  <h2>KPI Plots</h2>
+  <img src="figures/kpi_trends.png" alt="kpi_trends"><img src="figures/throughput_vs_latency.png" alt="throughput_vs_latency"><img src="figures/anomaly_timeline.png" alt="anomaly_timeline"><img src="figures/root_cause_distribution.png" alt="root_cause_distribution"><img src="figures/feature_importance.png" alt="feature_importance">
+
+  <h2>Engineering Interpretation</h2>
+  <p>
+    The logic separates weak coverage, interference, high-load congestion, and mobility failures
+    using transparent thresholds before ranking the KPIs that most separate degraded behavior from
+    the healthy baseline. This keeps the workflow explainable and reproducible.
+  </p>
+
+  <h2>Recommended Troubleshooting Actions</h2>
+  <ul>
+    <li>Continue periodic KPI monitoring and baseline comparison.</li>
+  </ul>
+
+  <h2>Limitations</h2>
+  <p>
+    This report uses synthetic KPI data. Real operator data is confidential, and field validation
+    would require vendor-specific counters, topology context, configuration history, and drive-test
+    or trace evidence.
+  </p>
+</body>
+</html>
