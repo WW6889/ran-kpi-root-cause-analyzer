@@ -6,12 +6,15 @@ from pathlib import Path
 
 import pandas as pd
 
+from .modeling import ModelDiagnostics
 from .root_cause import ROOT_CAUSE_ACTIONS
 
 
 def _table(frame: pd.DataFrame, columns: list[str], limit: int | None = None) -> str:
     data = frame[columns].head(limit) if limit else frame[columns]
-    return data.to_html(index=False, classes="data-table", float_format=lambda value: f"{value:.3f}")
+    return data.to_html(
+        index=False, classes="data-table", float_format=lambda value: f"{value:.3f}"
+    )
 
 
 def generate_html_report(
@@ -19,6 +22,8 @@ def generate_html_report(
     cell_summary: pd.DataFrame,
     root_cause_summary: pd.DataFrame,
     contributors: pd.DataFrame,
+    model_diagnostics: ModelDiagnostics,
+    model_importance: pd.DataFrame,
     figure_paths: list[str],
     output_path: str | Path,
 ) -> Path:
@@ -27,7 +32,8 @@ def generate_html_report(
     output.parent.mkdir(parents=True, exist_ok=True)
     degraded = analyzed[analyzed["root_cause"] != "healthy_baseline"]
     top_cell = root_cause_summary.iloc[0].to_dict() if not root_cause_summary.empty else {}
-    recommendations = ROOT_CAUSE_ACTIONS.get(top_cell.get("dominant_root_cause"), [])
+    dominant_cause = str(top_cell.get("dominant_root_cause", "healthy_baseline"))
+    recommendations = ROOT_CAUSE_ACTIONS.get(dominant_cause, [])
     relative_figures = [Path(path).relative_to(output.parent).as_posix() for path in figure_paths]
 
     html = f"""<!doctype html>
@@ -69,10 +75,20 @@ def generate_html_report(
   {_table(cell_summary, ["cell_id", "rsrp_dbm", "sinr_db", "prb_utilization_dl", "throughput_dl_mbps", "latency_ms", "degraded_ratio"], 12)}
 
   <h2>Degraded Cells and Root Causes</h2>
-  {_table(root_cause_summary, ["cell_id", "dominant_root_cause", "samples", "degraded_samples", "dominant_share"], 12)}
+  {_table(root_cause_summary, ["cell_id", "dominant_root_cause", "samples", "degraded_samples", "dominant_share", "mean_confidence"], 12)}
 
-  <h2>Ranked KPI Contributors</h2>
+  <h2>Rule-Based KPI Contributors</h2>
   {_table(contributors, ["kpi", "importance", "direction"], 10)}
+
+  <h2>Model Diagnostics</h2>
+  <p>
+    Diagnostic model: <code>{model_diagnostics.model_name}</code>.
+    Explanation method: <code>{model_diagnostics.explanation_method}</code>.
+    Train/test samples: {model_diagnostics.train_samples}/{model_diagnostics.test_samples}.
+    Accuracy: {model_diagnostics.accuracy:.3f}; balanced accuracy:
+    {model_diagnostics.balanced_accuracy:.3f}.
+  </p>
+  {_table(model_importance, ["feature", "importance"], 10)}
 
   <h2>KPI Plots</h2>
   {''.join(f'<img src="{figure}" alt="{Path(figure).stem}">' for figure in relative_figures)}
@@ -80,8 +96,9 @@ def generate_html_report(
   <h2>Engineering Interpretation</h2>
   <p>
     The logic separates weak coverage, interference, high-load congestion, and mobility failures
-    using transparent thresholds before ranking the KPIs that most separate degraded behavior from
-    the healthy baseline. This keeps the workflow explainable and reproducible.
+    using transparent evidence scores before ranking the KPIs that most separate degraded behavior
+    from the healthy baseline. The RandomForest/SHAP diagnostic is used as a reproducibility check,
+    not as an autonomous network optimization claim.
   </p>
 
   <h2>Recommended Troubleshooting Actions</h2>
@@ -100,4 +117,3 @@ def generate_html_report(
 """
     output.write_text(html, encoding="utf-8")
     return output
-

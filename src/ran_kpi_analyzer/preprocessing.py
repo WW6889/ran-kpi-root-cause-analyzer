@@ -5,29 +5,39 @@ from __future__ import annotations
 import pandas as pd
 
 from .config import (
+    DEFAULT_CONFIG,
     FEATURE_COLUMNS,
-    HIGH_ACTIVE_USERS,
-    HIGH_DROP_RATE,
-    LOW_THROUGHPUT_MBPS,
+    KPI_RANGES,
+    AnalyzerConfig,
 )
+from .exceptions import DataValidationError
+
+
+def validate_kpi_ranges(frame: pd.DataFrame) -> None:
+    """Fail fast when KPI values are outside physically plausible ranges."""
+    violations: list[str] = []
+    for column, (minimum, maximum) in KPI_RANGES.items():
+        invalid = frame[column].lt(minimum) | frame[column].gt(maximum)
+        if invalid.any():
+            violations.append(
+                f"{column} outside [{minimum:g}, {maximum:g}] in {int(invalid.sum())} rows"
+            )
+
+    if violations:
+        raise DataValidationError("; ".join(violations))
 
 
 def clean_kpi_data(frame: pd.DataFrame) -> pd.DataFrame:
-    """Normalize numeric fields and clamp impossible synthetic KPI values."""
+    """Normalize numeric fields and validate impossible KPI values."""
     data = frame.copy()
     for column in FEATURE_COLUMNS:
         data[column] = pd.to_numeric(data[column], errors="coerce")
 
-    data = data.dropna(subset=FEATURE_COLUMNS).copy()
-    data["cqi"] = data["cqi"].clip(1, 15)
-    data["prb_utilization_dl"] = data["prb_utilization_dl"].clip(0, 100)
-    data["throughput_dl_mbps"] = data["throughput_dl_mbps"].clip(lower=0)
-    data["latency_ms"] = data["latency_ms"].clip(lower=1)
-    data["packet_loss_rate"] = data["packet_loss_rate"].clip(0, 1)
-    data["rrc_setup_success_rate"] = data["rrc_setup_success_rate"].clip(0, 100)
-    data["handover_success_rate"] = data["handover_success_rate"].clip(0, 100)
-    data["call_drop_rate"] = data["call_drop_rate"].clip(0, 1)
-    data["active_users"] = data["active_users"].clip(lower=0)
+    if data[FEATURE_COLUMNS].isna().any().any():
+        invalid_columns = data[FEATURE_COLUMNS].columns[data[FEATURE_COLUMNS].isna().any()]
+        raise DataValidationError(f"Non-numeric KPI values found in: {', '.join(invalid_columns)}")
+
+    validate_kpi_ranges(data)
     return data.reset_index(drop=True)
 
 
@@ -46,15 +56,26 @@ def add_engineered_features(frame: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def add_degradation_labels(frame: pd.DataFrame) -> pd.DataFrame:
+def add_degradation_labels(
+    frame: pd.DataFrame, config: AnalyzerConfig = DEFAULT_CONFIG
+) -> pd.DataFrame:
     """Create degraded-vs-healthy labels from practical RAN thresholds."""
     data = frame.copy()
     degraded = (
-        ((data["rsrp_dbm"] < -105) & (data["throughput_dl_mbps"] < LOW_THROUGHPUT_MBPS))
-        | ((data["sinr_db"] < 5) & (data["cqi"] < 7))
-        | ((data["prb_utilization_dl"] > 85) & (data["active_users"] > HIGH_ACTIVE_USERS))
-        | ((data["handover_success_rate"] < 90) & (data["call_drop_rate"] > HIGH_DROP_RATE))
-        | (data["packet_loss_rate"] > 0.03)
+        (
+            (data["rsrp_dbm"] < config.weak_rsrp_dbm)
+            & (data["throughput_dl_mbps"] < config.low_throughput_mbps)
+        )
+        | ((data["sinr_db"] < config.poor_sinr_db) & (data["cqi"] < config.poor_cqi))
+        | (
+            (data["prb_utilization_dl"] > config.high_prb_utilization)
+            & (data["active_users"] > config.high_active_users)
+        )
+        | (
+            (data["handover_success_rate"] < config.poor_handover_success_rate)
+            & (data["call_drop_rate"] > config.high_call_drop_rate)
+        )
+        | (data["packet_loss_rate"] > config.high_packet_loss_rate)
     )
     data["is_degraded"] = degraded.astype(int)
     return data
@@ -80,7 +101,6 @@ def aggregate_cell_kpis(frame: pd.DataFrame) -> pd.DataFrame:
     return summary.sort_values("degraded_ratio", ascending=False).reset_index(drop=True)
 
 
-def prepare_kpi_data(frame: pd.DataFrame) -> pd.DataFrame:
+def prepare_kpi_data(frame: pd.DataFrame, config: AnalyzerConfig = DEFAULT_CONFIG) -> pd.DataFrame:
     """Run the complete preprocessing pipeline."""
-    return add_degradation_labels(add_engineered_features(clean_kpi_data(frame)))
-
+    return add_degradation_labels(add_engineered_features(clean_kpi_data(frame)), config)

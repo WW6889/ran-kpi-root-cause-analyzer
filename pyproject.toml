@@ -7,8 +7,17 @@ name = "ran-kpi-root-cause-analyzer"
 version = "0.1.0"
 description = "RAN KPI degradation and root-cause analysis toolkit"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Omid Rahimi" }]
+dependencies = [
+  "pandas==3.0.3",
+  "numpy==2.4.6",
+  "matplotlib==3.10.9",
+  "jinja2==3.1.6",
+  "scikit-learn==1.8.0",
+  "xgboost==3.2.0",
+  "shap==0.51.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -16,4 +25,18 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+addopts = "--cov=ran_kpi_analyzer --cov=main --cov-report=term-missing"
 
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src", "main.py", "tests"]
+ignore_missing_imports = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+check_untyped_defs = true

@@ -1,12 +1,10 @@
-"""Rule-based root-cause classification and explainable contributors."""
+"""Evidence-based root-cause classification and KPI contributors."""
 
 from __future__ import annotations
 
-from collections import Counter
-
 import pandas as pd
 
-from .config import HIGH_ACTIVE_USERS, HIGH_DROP_RATE, LOW_THROUGHPUT_MBPS
+from .config import DEFAULT_CONFIG, AnalyzerConfig
 
 
 ROOT_CAUSE_ACTIONS = {
@@ -32,32 +30,134 @@ ROOT_CAUSE_ACTIONS = {
 }
 
 
-def classify_row(row: pd.Series) -> str:
-    """Classify a single KPI sample using practical RAN engineering rules."""
-    if row["rsrp_dbm"] < -105 and row["throughput_dl_mbps"] < LOW_THROUGHPUT_MBPS:
-        return "coverage_limitation"
-    if row["sinr_db"] < 5 and row["rsrp_dbm"] >= -105 and row["cqi"] < 8:
-        return "interference"
-    if row["prb_utilization_dl"] > 85 and row["active_users"] > HIGH_ACTIVE_USERS:
-        return "capacity_congestion"
-    if row["handover_success_rate"] < 90 and row["call_drop_rate"] > HIGH_DROP_RATE:
-        return "mobility_degradation"
-    return "healthy_baseline"
+def score_root_causes(row: pd.Series, config: AnalyzerConfig = DEFAULT_CONFIG) -> dict[str, float]:
+    """Score RCA evidence from independent KPI symptoms.
+
+    The output is not a probability. It is a transparent engineering evidence
+    score that favors believable symptom combinations over single KPI triggers.
+    """
+    throughput_per_user = row.get("throughput_per_user", 0.0)
+    scores = {
+        "coverage_limitation": 0.0,
+        "interference": 0.0,
+        "capacity_congestion": 0.0,
+        "mobility_degradation": 0.0,
+    }
+
+    if row["rsrp_dbm"] < config.poor_rsrp_dbm:
+        scores["coverage_limitation"] += 0.45
+    elif row["rsrp_dbm"] < config.weak_rsrp_dbm:
+        scores["coverage_limitation"] += 0.25
+    if row["throughput_dl_mbps"] < config.low_throughput_mbps:
+        scores["coverage_limitation"] += 0.20
+    if row["call_drop_rate"] > config.high_call_drop_rate:
+        scores["coverage_limitation"] += 0.10
+    if row["sinr_db"] < config.poor_sinr_db:
+        scores["coverage_limitation"] += 0.10
+
+    if row["sinr_db"] < config.poor_sinr_db:
+        scores["interference"] += 0.40
+    if row["rsrp_dbm"] >= config.weak_rsrp_dbm:
+        scores["interference"] += 0.20
+    if row["cqi"] < config.poor_cqi:
+        scores["interference"] += 0.20
+    if row["packet_loss_rate"] > config.high_packet_loss_rate:
+        scores["interference"] += 0.10
+    if row["throughput_dl_mbps"] < config.low_throughput_mbps:
+        scores["interference"] += 0.10
+
+    if row["prb_utilization_dl"] > config.high_prb_utilization:
+        scores["capacity_congestion"] += 0.35
+    if row["active_users"] > config.high_active_users:
+        scores["capacity_congestion"] += 0.25
+    if row["latency_ms"] > config.high_latency_ms:
+        scores["capacity_congestion"] += 0.15
+    if throughput_per_user < config.low_throughput_per_user_mbps:
+        scores["capacity_congestion"] += 0.15
+    if row["throughput_dl_mbps"] < config.low_throughput_mbps:
+        scores["capacity_congestion"] += 0.10
+
+    if row["handover_success_rate"] < config.poor_handover_success_rate:
+        scores["mobility_degradation"] += 0.45
+    if row["call_drop_rate"] > config.high_call_drop_rate:
+        scores["mobility_degradation"] += 0.25
+    if row["rrc_setup_success_rate"] >= 95:
+        scores["mobility_degradation"] += 0.10
+    if row["rsrp_dbm"] >= config.poor_rsrp_dbm:
+        scores["mobility_degradation"] += 0.10
+    if row["throughput_dl_mbps"] < config.low_throughput_mbps:
+        scores["mobility_degradation"] += 0.10
+
+    return scores
 
 
-def add_root_cause_labels(frame: pd.DataFrame) -> pd.DataFrame:
+def classify_row(row: pd.Series, config: AnalyzerConfig = DEFAULT_CONFIG) -> str:
+    """Classify a single KPI sample using evidence-based RCA rules."""
+    scores = score_root_causes(row, config)
+    root_cause, score = max(scores.items(), key=lambda item: item[1])
+    if score < 0.50:
+        return "healthy_baseline"
+    return root_cause
+
+
+def _evidence_text(row: pd.Series, root_cause: str, config: AnalyzerConfig) -> str:
+    evidence = {
+        "coverage_limitation": [
+            f"RSRP {row['rsrp_dbm']:.1f} dBm",
+            f"throughput {row['throughput_dl_mbps']:.1f} Mbps",
+        ],
+        "interference": [
+            f"SINR {row['sinr_db']:.1f} dB",
+            f"CQI {row['cqi']:.1f}",
+            f"RSRP {row['rsrp_dbm']:.1f} dBm",
+        ],
+        "capacity_congestion": [
+            f"PRB {row['prb_utilization_dl']:.1f}%",
+            f"active users {row['active_users']:.0f}",
+            f"latency {row['latency_ms']:.1f} ms",
+        ],
+        "mobility_degradation": [
+            f"HOSR {row['handover_success_rate']:.1f}%",
+            f"drop rate {row['call_drop_rate']:.3f}",
+        ],
+        "healthy_baseline": ["No degradation rule exceeded evidence threshold"],
+    }
+    return "; ".join(evidence[root_cause])
+
+
+def add_root_cause_labels(
+    frame: pd.DataFrame, config: AnalyzerConfig = DEFAULT_CONFIG
+) -> pd.DataFrame:
     """Add root-cause labels to every KPI row."""
     data = frame.copy()
-    data["root_cause"] = data.apply(classify_row, axis=1)
+    scored = data.apply(lambda row: score_root_causes(row, config), axis=1)
+    data["root_cause"] = scored.apply(
+        lambda scores: max(scores.items(), key=lambda item: item[1])[0]
+    )
+    data["root_cause_confidence"] = scored.apply(lambda scores: max(scores.values())).round(3)
+    data.loc[data["root_cause_confidence"] < 0.50, "root_cause"] = "healthy_baseline"
+    data.loc[data["root_cause"] == "healthy_baseline", "root_cause_confidence"] = 0.0
+    data["root_cause_evidence"] = data.apply(
+        lambda row: _evidence_text(row, row["root_cause"], config), axis=1
+    )
     return data
 
 
 def summarize_root_causes(frame: pd.DataFrame) -> pd.DataFrame:
     """Summarize dominant root cause per cell."""
-    rows = []
+    rows: list[dict[str, object]] = []
     for cell_id, group in frame.groupby("cell_id"):
-        causes = Counter(group["root_cause"])
-        dominant, count = causes.most_common(1)[0]
+        degraded = group[group["root_cause"] != "healthy_baseline"]
+        if degraded.empty:
+            dominant = "healthy_baseline"
+            count = len(group)
+            mean_confidence = 0.0
+        else:
+            dominant = degraded["root_cause"].mode().iat[0]
+            count = int((group["root_cause"] == dominant).sum())
+            mean_confidence = float(
+                degraded.loc[degraded["root_cause"] == dominant, "root_cause_confidence"].mean()
+            )
         rows.append(
             {
                 "cell_id": cell_id,
@@ -65,6 +165,7 @@ def summarize_root_causes(frame: pd.DataFrame) -> pd.DataFrame:
                 "samples": len(group),
                 "degraded_samples": int((group["root_cause"] != "healthy_baseline").sum()),
                 "dominant_share": count / len(group),
+                "mean_confidence": round(mean_confidence, 3),
             }
         )
     return pd.DataFrame(rows).sort_values(["degraded_samples", "dominant_share"], ascending=False)
@@ -101,4 +202,3 @@ def rank_kpi_contributors(frame: pd.DataFrame) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows).sort_values("importance", ascending=False).reset_index(drop=True)
-

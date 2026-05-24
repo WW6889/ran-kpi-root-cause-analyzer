@@ -1,135 +1,158 @@
 # RAN KPI Root-Cause Analysis Toolkit
 
-A Python-based engineering toolkit for detecting KPI degradation and generating reproducible root-cause analysis reports for 4G/5G RAN systems.
+Engineering-focused Python toolkit for analyzing synthetic 4G/5G RAN KPI degradation and producing reproducible root-cause analysis reports.
 
-This project uses synthetic KPI data because real operator data is confidential. The KPI relationships and troubleshooting logic are based on practical RAN engineering patterns.
+This repository is intentionally practical: no dashboard, no optimization claims, and no confidential operator data. The goal is to demonstrate KPI validation, automation, explainable diagnostics, testing discipline, and Linux-friendly reproducibility.
 
-## Why This Project Exists
+## What It Does
 
-RAN performance work often requires quickly separating weak coverage, interference, capacity congestion, and mobility problems from healthy baseline behavior. This project demonstrates a reproducible workflow for KPI validation, anomaly detection, explainable root-cause classification, visualization, and HTML reporting.
+Given a cell-level KPI time series, the analyzer:
 
-## Engineering Problem
+- validates the input schema and KPI ranges
+- detects anomalous KPI periods
+- classifies likely degradation patterns
+- ranks KPI contributors with rule-based and ML-assisted explanations
+- generates five engineering plots
+- produces an HTML report with troubleshooting recommendations
 
-Given a time-series KPI dataset per cell, the toolkit identifies degraded periods, classifies likely root causes, ranks KPI contributors, and produces an engineering report with plots and recommended troubleshooting actions.
+Supported diagnostic scenarios:
 
-## Features
+- coverage limitation
+- interference degradation
+- capacity congestion
+- mobility degradation
+- healthy baseline operation
 
-- Synthetic but realistic RAN KPI dataset
-- CSV schema validation and timestamp handling
-- KPI cleaning, engineered features, and degradation labels
-- Z-score and robust anomaly scoring
-- Rule-based root-cause classification
-- Ranked KPI contributor analysis
-- Five report figures
-- Automated HTML engineering report
-- Unit tests, Dockerfile, and GitHub Actions CI
+## Engineering Scope
+
+This project is a validation and reporting toolkit, not a field-accurate RAN optimizer. It uses synthetic data because real operator KPI data is confidential. The thresholds and relationships are documented in [engineering assumptions](docs/engineering_assumptions.md) and are meant to be reviewable.
+
+## Repository Layout
+
+```text
+.
+├── main.py
+├── src/ran_kpi_analyzer/
+│   ├── data_loader.py
+│   ├── preprocessing.py
+│   ├── anomaly_detection.py
+│   ├── root_cause.py
+│   ├── modeling.py
+│   ├── visualization.py
+│   └── report_generator.py
+├── data/raw/sample_ran_kpi_data.csv
+├── reports/example_report.html
+├── reports/figures/
+├── tests/
+├── docs/
+├── Dockerfile
+├── Makefile
+└── .github/workflows/ci.yml
+```
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A[CSV KPI data] --> B[Data loader]
-    B --> C[Preprocessing]
-    C --> D[Anomaly detection]
-    D --> E[Root-cause engine]
-    E --> F[Contributor ranking]
-    F --> G[Plots]
-    G --> H[HTML report]
+    A["CSV KPI data"] --> B["schema and range validation"]
+    B --> C["feature engineering"]
+    C --> D["robust anomaly detection"]
+    D --> E["evidence-based RCA rules"]
+    E --> F["RandomForest + SHAP diagnostics"]
+    F --> G["plots and HTML report"]
 ```
 
-## Dataset
-
-The sample data includes:
-
-- `timestamp`
-- `cell_id`
-- `band`
-- `rsrp_dbm`
-- `sinr_db`
-- `cqi`
-- `prb_utilization_dl`
-- `throughput_dl_mbps`
-- `latency_ms`
-- `packet_loss_rate`
-- `rrc_setup_success_rate`
-- `handover_success_rate`
-- `call_drop_rate`
-- `active_users`
-
-Implemented scenarios:
-
-- Coverage limitation
-- Interference degradation
-- Capacity congestion
-- Mobility degradation
-- Healthy baseline operation
-
-## Root-Cause Logic
-
-- Coverage limitation: low RSRP and low throughput
-- Interference: low SINR, reduced CQI, normal RSRP
-- Capacity congestion: high PRB utilization and high active users
-- Mobility degradation: low handover success rate and elevated call drop rate
-- Healthy baseline: stable KPIs outside degradation thresholds
+The RCA rules remain transparent. The ML step is used as a diagnostic feature ranking and consistency check, not as an autonomous decision engine.
 
 ## Example Outputs
 
-Running the project creates:
+The checked-in sample run produces:
 
-- `reports/example_report.html`
-- `reports/figures/kpi_trends.png`
-- `reports/figures/throughput_vs_latency.png`
-- `reports/figures/anomaly_timeline.png`
-- `reports/figures/root_cause_distribution.png`
-- `reports/figures/feature_importance.png`
+- [HTML engineering report](reports/example_report.html)
+- [KPI trend plot](reports/figures/kpi_trends.png)
+- [throughput vs latency plot](reports/figures/throughput_vs_latency.png)
+- [anomaly timeline](reports/figures/anomaly_timeline.png)
+- [root-cause distribution](reports/figures/root_cause_distribution.png)
+- [model feature importance](reports/figures/feature_importance.png)
 
-## Installation
+## Quick Start
+
+```bash
+make setup
+make test
+make run
+```
+
+Equivalent manual commands:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m pytest
+.venv/bin/python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
 ```
 
-## How To Run
+## CLI
 
 ```bash
-python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
+python main.py \
+  --input data/raw/sample_ran_kpi_data.csv \
+  --output reports/example_report.html \
+  --log-level INFO
 ```
 
-To regenerate the synthetic dataset:
+Invalid inputs return exit code `2` with a clear validation error.
+
+## Regenerate Synthetic Data
 
 ```bash
-python -m ran_kpi_analyzer.synthetic_data
+PYTHONPATH=src python -m ran_kpi_analyzer.synthetic_data
 ```
 
-## Tests
+The generator is deterministic by default and creates coverage, interference, congestion, mobility, and healthy baseline cells.
+
+## Quality Gates
 
 ```bash
-pytest
+make format
+make lint
+make typecheck
+make test
 ```
+
+CI runs formatting, linting, type checks, tests with coverage, and report generation.
 
 ## Docker
 
 ```bash
 docker build -t ran-kpi-analyzer .
-docker run ran-kpi-analyzer
+docker run --rm ran-kpi-analyzer
 ```
+
+## Key Assumptions
+
+- RSRP below `-108 dBm` is strong coverage evidence.
+- SINR below `5 dB` with normal RSRP and low CQI is interference evidence.
+- Congestion requires load symptoms: high PRB utilization, high active users, high latency, and low throughput per user.
+- Mobility degradation requires handover/drop symptoms and should not be inferred from throughput alone.
+
+See [engineering assumptions](docs/engineering_assumptions.md) for details and limitations.
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Engineering assumptions](docs/engineering_assumptions.md)
+- [Sample case study](docs/sample_case_study.md)
+- [Dependency list](docs/dependencies.md)
+- [Final engineering review](docs/final_engineering_review.md)
 
 ## Limitations
 
-- Synthetic data cannot represent all vendor-specific counters or field conditions.
-- Root-cause rules are transparent engineering heuristics, not a replacement for drive tests, traces, configuration audits, or topology review.
-- SHAP and XGBoost are listed as future-compatible explainability/modeling dependencies, but the default implementation stays deterministic and lightweight for reproducible CI.
+- Synthetic KPI data cannot prove field accuracy.
+- Vendor-specific counters, topology, alarms, trace data, and configuration history are outside the project scope.
+- SHAP explanations depend on the trained diagnostic model and should be interpreted as feature influence, not physical causality.
 
-## Future Improvements
-
-- Add vendor-specific counter mapping profiles
-- Add optional scikit-learn RandomForest model training
-- Add SHAP plots when the optional dependency is installed
-- Add topology-aware neighbor cell analysis
-- Add KPI baseline drift monitoring
-
-## Author
+## Maintainer
 
 Omid Rahimi

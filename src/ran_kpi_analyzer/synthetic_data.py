@@ -67,7 +67,9 @@ def _base_sample(rng: np.random.Generator, timestamp, cell_id: str, scenario: st
     return sample
 
 
-def generate_synthetic_dataset(output_path: str | Path, periods: int = 96, seed: int = 42) -> pd.DataFrame:
+def generate_synthetic_dataset(
+    output_path: str | Path, periods: int = 96, seed: int = 42
+) -> pd.DataFrame:
     """Generate a multi-cell, 15-minute KPI dataset."""
     rng = np.random.default_rng(seed)
     timestamps = pd.date_range("2026-01-05", periods=periods, freq="15min")

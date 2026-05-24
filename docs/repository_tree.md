@@ -1,0 +1,67 @@
+# Final Repository Tree
+
+```text
+.
+├── .flake8
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   └── bug_report.md
+│   └── workflows/
+│       └── ci.yml
+├── .gitignore
+├── .pre-commit-config.yaml
+├── CONTRIBUTING.md
+├── Dockerfile
+├── LICENSE
+├── Makefile
+├── README.md
+├── data/
+│   ├── processed/
+│   └── raw/
+│       └── sample_ran_kpi_data.csv
+├── docs/
+│   ├── architecture.md
+│   ├── dependencies.md
+│   ├── engineering_assumptions.md
+│   ├── final_engineering_review.md
+│   ├── repository_tree.md
+│   ├── sample_case_study.md
+│   └── test_summary.md
+├── main.py
+├── notebooks/
+│   └── 01_exploratory_analysis.ipynb
+├── pyproject.toml
+├── reports/
+│   ├── example_report.html
+│   └── figures/
+│       ├── anomaly_timeline.png
+│       ├── feature_importance.png
+│       ├── kpi_trends.png
+│       ├── root_cause_distribution.png
+│       └── throughput_vs_latency.png
+├── requirements-dev.txt
+├── requirements.txt
+├── src/
+│   └── ran_kpi_analyzer/
+│       ├── __init__.py
+│       ├── anomaly_detection.py
+│       ├── config.py
+│       ├── data_loader.py
+│       ├── exceptions.py
+│       ├── modeling.py
+│       ├── preprocessing.py
+│       ├── report_generator.py
+│       ├── root_cause.py
+│       ├── synthetic_data.py
+│       └── visualization.py
+└── tests/
+    ├── conftest.py
+    ├── test_anomaly_detection.py
+    ├── test_data_loader.py
+    ├── test_integration.py
+    ├── test_modeling.py
+    ├── test_preprocessing.py
+    ├── test_root_cause.py
+    └── test_synthetic_data.py
+```
+
