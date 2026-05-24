@@ -8,6 +8,7 @@
 │   └── workflows/
 │       └── ci.yml
 ├── .gitignore
+├── .python-version
 ├── .pre-commit-config.yaml
 ├── CONTRIBUTING.md
 ├── Dockerfile
@@ -15,7 +16,6 @@
 ├── Makefile
 ├── README.md
 ├── data/
-│   ├── processed/
 │   └── raw/
 │       └── sample_ran_kpi_data.csv
 ├── docs/

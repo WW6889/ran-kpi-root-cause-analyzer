@@ -34,3 +34,39 @@ def test_train_degradation_model_returns_diagnostics_and_importance():
     }
     assert not importance.empty
     assert set(importance.columns) == {"feature", "importance"}
+
+
+def test_train_degradation_model_rejects_missing_target_column():
+    frame = prepare_kpi_data(pd.DataFrame([kpi_row(), kpi_row(cell_id="Cell_B")]))
+    frame = frame.drop(columns=["is_degraded"])
+
+    try:
+        train_degradation_model(frame)
+    except ValueError as exc:
+        assert "missing required columns: is_degraded" in str(exc)
+    else:
+        raise AssertionError("Expected missing target column to raise ValueError")
+
+
+def test_train_degradation_model_rejects_undersized_target_class():
+    rows = [
+        kpi_row(timestamp=f"2026-01-01 {idx:02d}:00:00", cell_id=f"Cell_{idx:03d}")
+        for idx in range(5)
+    ]
+    rows.append(
+        kpi_row(
+            timestamp="2026-01-02 00:00:00",
+            cell_id="Cell_D",
+            rsrp_dbm=-112,
+            throughput_dl_mbps=18,
+            call_drop_rate=0.04,
+        )
+    )
+    analyzed = add_root_cause_labels(detect_anomalies(prepare_kpi_data(pd.DataFrame(rows))))
+
+    try:
+        train_degradation_model(analyzed)
+    except ValueError as exc:
+        assert "fewer than two samples per target class" in str(exc)
+    else:
+        raise AssertionError("Expected undersized target class to raise ValueError")

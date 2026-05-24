@@ -39,7 +39,7 @@ Improvements completed:
 - no silent clipping of impossible KPI values,
 - SHAP-backed model explanation with safe fallback,
 - pinned dependencies,
-- black, ruff, mypy, pytest-cov, uv, and pre-commit configuration.
+- ruff, mypy, pytest-cov, uv, and pre-commit configuration.
 
 The code is maintainable and small enough for interview discussion. A reviewer can trace each decision from input data to report output.
 
@@ -59,19 +59,19 @@ The test suite now covers:
 - CLI failure behavior,
 - end-to-end report and figure generation.
 
-Final local result: 19 tests passed with 96% total coverage.
+Final local result: run the commands in `docs/test_summary.md` from the repository root.
 
 ## DevOps and Reproducibility Review
 
 The repository includes:
 
-- `Makefile` for one-command setup, test, lint, typecheck, run, and Docker commands,
+- `Makefile` for uv-based test, lint, format, and sample-run commands,
 - pinned runtime and development dependencies,
 - GitHub Actions CI for formatting, linting, type checking, tests, and report generation,
 - Dockerfile for containerized execution,
 - checked-in sample report and plots.
 
-Local Docker verification could not be completed because Docker is not installed on the host. The GitHub Actions workflow now includes Docker build and run steps so container verification is performed on the Ubuntu CI runner.
+Local and CI workflows use Python 3.11 and uv as the package manager. Docker uses the same Python version and runs the console entry point against the checked-in sample data.
 
 ## Remaining Weaknesses
 
@@ -79,7 +79,7 @@ Local Docker verification could not be completed because Docker is not installed
 - No topology, neighbor relation, alarm, trace, or configuration inputs are modeled.
 - SHAP explains the diagnostic classifier, not physical causality.
 - Thresholds are vendor-neutral and should be tuned before field use.
-- Docker build remains unverified locally due missing host Docker, but is covered by CI.
+- Docker depends on the host Docker daemon being available for local verification.
 
 ## Production-Readiness Assessment
 

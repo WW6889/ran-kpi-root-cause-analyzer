@@ -47,6 +47,7 @@ This project is a validation and reporting toolkit, not a field-accurate RAN opt
 ├── docs/
 ├── Dockerfile
 ├── Makefile
+├── .python-version
 ├── pyproject.toml
 ├── uv.lock
 └── .github/workflows/ci.yml
@@ -79,6 +80,8 @@ The checked-in sample run produces:
 
 ## Quick Start
 
+Python is standardized on 3.11 for local development, CI, and Docker. The `.python-version` file lets `uv` select or install the matching interpreter.
+
 Install `uv` first:
 
 ```bash
@@ -103,8 +106,9 @@ uv run python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/
 The `Makefile` wraps the same uv commands:
 
 ```bash
-make setup
 make test
+make lint
+make format
 make run
 ```
 
@@ -138,10 +142,11 @@ The generator is deterministic by default and creates coverage, interference, co
 ## Quality Gates
 
 ```bash
-make format
-make lint
-make typecheck
-make test
+uv sync
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy src
 ```
 
 CI runs formatting, linting, type checks, tests with coverage, and report generation.

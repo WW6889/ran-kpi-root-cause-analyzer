@@ -42,18 +42,42 @@ def train_degradation_model(
     except ImportError as exc:  # pragma: no cover - exercised only in minimal envs
         raise RuntimeError("scikit-learn is required for ML diagnostics") from exc
 
-    features = frame[MODEL_FEATURE_COLUMNS].astype(float)
-    target = frame["is_degraded"].astype(int)
-    if target.nunique() < 2:
-        raise ValueError("Cannot train degradation classifier with a single target class")
+    required_columns = [*MODEL_FEATURE_COLUMNS, "is_degraded"]
+    missing_columns = [column for column in required_columns if column not in frame.columns]
+    if missing_columns:
+        raise ValueError(
+            "Cannot train degradation classifier; missing required columns: "
+            + ", ".join(missing_columns)
+        )
+    if frame.empty:
+        raise ValueError("Cannot train degradation classifier with an empty dataset")
 
-    stratify = target if target.value_counts().min() >= 2 else None
+    try:
+        features = frame[MODEL_FEATURE_COLUMNS].astype(float)
+        target = frame["is_degraded"].astype(int)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Cannot train degradation classifier with non-numeric inputs") from exc
+
+    if not np.isfinite(features.to_numpy()).all():
+        raise ValueError("Cannot train degradation classifier with non-finite feature values")
+    if target.isna().any():
+        raise ValueError("Cannot train degradation classifier with missing target values")
+
+    target_counts = target.value_counts()
+    if len(target_counts) < 2:
+        raise ValueError("Cannot train degradation classifier with a single target class")
+    if target_counts.min() < 2:
+        raise ValueError(
+            "Cannot train degradation classifier with fewer than two samples per target class"
+        )
+
+    test_size = max(int(np.ceil(len(frame) * 0.25)), len(target_counts))
     x_train, x_test, y_train, y_test = train_test_split(
         features,
         target,
-        test_size=0.25,
+        test_size=test_size,
         random_state=config.random_seed,
-        stratify=stratify,
+        stratify=target,
     )
 
     model = RandomForestClassifier(

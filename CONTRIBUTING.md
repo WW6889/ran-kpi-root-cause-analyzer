@@ -7,10 +7,9 @@ This repository is maintained as an engineering portfolio project. Contributions
 Install `uv`, then run:
 
 ```bash
-make setup
+uv sync
 make test
 make lint
-make typecheck
 ```
 
 ## Contribution Rules
@@ -28,7 +27,6 @@ Before opening a pull request:
 ```bash
 make format
 make lint
-make typecheck
 make test
 make run
 ```
