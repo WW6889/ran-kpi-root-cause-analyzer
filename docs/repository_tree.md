@@ -2,7 +2,6 @@
 
 ```text
 .
-├── .flake8
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   └── bug_report.md
@@ -31,6 +30,7 @@
 ├── notebooks/
 │   └── 01_exploratory_analysis.ipynb
 ├── pyproject.toml
+├── uv.lock
 ├── reports/
 │   ├── example_report.html
 │   └── figures/
@@ -39,12 +39,11 @@
 │       ├── kpi_trends.png
 │       ├── root_cause_distribution.png
 │       └── throughput_vs_latency.png
-├── requirements-dev.txt
-├── requirements.txt
 ├── src/
 │   └── ran_kpi_analyzer/
 │       ├── __init__.py
 │       ├── anomaly_detection.py
+│       ├── cli.py
 │       ├── config.py
 │       ├── data_loader.py
 │       ├── exceptions.py

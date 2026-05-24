@@ -8,7 +8,6 @@ from ran_kpi_analyzer.root_cause import (
     rank_kpi_contributors,
     summarize_root_causes,
 )
-
 from tests.helpers import kpi_row
 
 

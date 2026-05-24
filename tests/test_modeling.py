@@ -6,7 +6,6 @@ from ran_kpi_analyzer.anomaly_detection import detect_anomalies
 from ran_kpi_analyzer.modeling import train_degradation_model
 from ran_kpi_analyzer.preprocessing import prepare_kpi_data
 from ran_kpi_analyzer.root_cause import add_root_cause_labels
-
 from tests.helpers import kpi_row
 
 

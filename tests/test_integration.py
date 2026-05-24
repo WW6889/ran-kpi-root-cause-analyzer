@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from main import main, run_analysis
+from ran_kpi_analyzer.cli import main, run_analysis
 from ran_kpi_analyzer.synthetic_data import generate_synthetic_dataset
 
 

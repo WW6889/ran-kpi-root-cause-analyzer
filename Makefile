@@ -1,29 +1,32 @@
-.PHONY: setup test lint typecheck format run docker-build docker-run
+.PHONY: setup test lint typecheck format run cli docker-build docker-run
+
+export UV_CACHE_DIR ?= .uv-cache
 
 setup:
-	python -m venv .venv
-	.venv/bin/python -m pip install --upgrade pip
-	.venv/bin/python -m pip install -r requirements-dev.txt
+	uv sync --all-groups
 
 test:
-	.venv/bin/python -m pytest
+	uv run pytest
 
 lint:
-	.venv/bin/black --check src tests main.py
-	.venv/bin/flake8 src tests main.py
+	uv run python -m black --check src tests main.py
+	uv run python -m ruff check src tests main.py
 
 typecheck:
-	.venv/bin/mypy
+	uv run python -m mypy
 
 format:
-	.venv/bin/black src tests main.py
+	uv run python -m black src tests main.py
+	uv run python -m ruff check --fix src tests main.py
 
 run:
-	.venv/bin/python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
+	uv run python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
+
+cli:
+	uv run ran-kpi-analyzer --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
 
 docker-build:
 	docker build -t ran-kpi-analyzer .
 
 docker-run:
 	docker run --rm ran-kpi-analyzer
-

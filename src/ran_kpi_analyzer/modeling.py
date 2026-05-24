@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -97,7 +98,8 @@ def _explain_model(
         method = "mean_abs_shap"
     except Exception as exc:  # pragma: no cover - fallback safety for SHAP env issues
         LOGGER.warning("SHAP explanation failed; using model feature_importances_: %s", exc)
-        mean_abs = np.asarray(getattr(model, "feature_importances_"))
+        model_with_importance = cast(Any, model)
+        mean_abs = np.asarray(model_with_importance.feature_importances_)
         method = "random_forest_feature_importance"
 
     result = pd.DataFrame(

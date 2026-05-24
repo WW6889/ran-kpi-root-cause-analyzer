@@ -39,7 +39,7 @@ Improvements completed:
 - no silent clipping of impossible KPI values,
 - SHAP-backed model explanation with safe fallback,
 - pinned dependencies,
-- black, flake8, mypy, pytest-cov, and pre-commit configuration.
+- black, ruff, mypy, pytest-cov, uv, and pre-commit configuration.
 
 The code is maintainable and small enough for interview discussion. A reviewer can trace each decision from input data to report output.
 
@@ -71,7 +71,7 @@ The repository includes:
 - Dockerfile for containerized execution,
 - checked-in sample report and plots.
 
-Local Docker verification could not be completed because Docker is not installed on the host. The Dockerfile is present and CI-compatible, but a final container build should be run on a Docker-enabled machine.
+Local Docker verification could not be completed because Docker is not installed on the host. The GitHub Actions workflow now includes Docker build and run steps so container verification is performed on the Ubuntu CI runner.
 
 ## Remaining Weaknesses
 
@@ -79,7 +79,7 @@ Local Docker verification could not be completed because Docker is not installed
 - No topology, neighbor relation, alarm, trace, or configuration inputs are modeled.
 - SHAP explains the diagnostic classifier, not physical causality.
 - Thresholds are vendor-neutral and should be tuned before field use.
-- Docker build remains unverified locally due missing host Docker.
+- Docker build remains unverified locally due missing host Docker, but is covered by CI.
 
 ## Production-Readiness Assessment
 
@@ -97,4 +97,3 @@ For a German systems validation, test automation, RF measurement, or network int
 - and the ability to communicate assumptions and limitations.
 
 The project should be presented as a RAN KPI root-cause analysis toolkit, not as an AI optimization product.
-

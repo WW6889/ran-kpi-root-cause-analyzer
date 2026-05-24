@@ -4,6 +4,8 @@ This repository is maintained as an engineering portfolio project. Contributions
 
 ## Development Setup
 
+Install `uv`, then run:
+
 ```bash
 make setup
 make test
@@ -30,4 +32,3 @@ make typecheck
 make test
 make run
 ```
-

@@ -4,7 +4,6 @@ import pandas as pd
 
 from ran_kpi_analyzer.anomaly_detection import detect_anomalies
 from ran_kpi_analyzer.preprocessing import prepare_kpi_data
-
 from tests.helpers import kpi_row
 
 

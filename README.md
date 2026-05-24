@@ -47,6 +47,8 @@ This project is a validation and reporting toolkit, not a field-accurate RAN opt
 ├── docs/
 ├── Dockerfile
 ├── Makefile
+├── pyproject.toml
+├── uv.lock
 └── .github/workflows/ci.yml
 ```
 
@@ -77,29 +79,50 @@ The checked-in sample run produces:
 
 ## Quick Start
 
+Install `uv` first:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Clone the repository and install the locked environment:
+
+```bash
+git clone https://github.com/WW6889/ran-kpi-root-cause-analyzer.git
+cd ran-kpi-root-cause-analyzer
+uv sync
+```
+
+Run the checks and generate the sample report:
+
+```bash
+uv run pytest
+uv run python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
+```
+
+The `Makefile` wraps the same uv commands:
+
 ```bash
 make setup
 make test
 make run
 ```
 
-Equivalent manual commands:
-
-```bash
-python -m venv .venv
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -r requirements-dev.txt
-.venv/bin/python -m pytest
-.venv/bin/python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
-```
-
 ## CLI
 
 ```bash
-python main.py \
+uv run python main.py \
   --input data/raw/sample_ran_kpi_data.csv \
   --output reports/example_report.html \
   --log-level INFO
+```
+
+The package also exposes a console script:
+
+```bash
+uv run ran-kpi-analyzer \
+  --input data/raw/sample_ran_kpi_data.csv \
+  --output reports/example_report.html
 ```
 
 Invalid inputs return exit code `2` with a clear validation error.
@@ -107,7 +130,7 @@ Invalid inputs return exit code `2` with a clear validation error.
 ## Regenerate Synthetic Data
 
 ```bash
-PYTHONPATH=src python -m ran_kpi_analyzer.synthetic_data
+uv run python -m ran_kpi_analyzer.synthetic_data
 ```
 
 The generator is deterministic by default and creates coverage, interference, congestion, mobility, and healthy baseline cells.
@@ -122,6 +145,8 @@ make test
 ```
 
 CI runs formatting, linting, type checks, tests with coverage, and report generation.
+
+The project uses `pyproject.toml` for runtime dependencies, development dependency groups, package metadata, CLI entry points, and tool configuration. `uv.lock` pins the resolved dependency graph for reproducible local and CI runs.
 
 ## Docker
 

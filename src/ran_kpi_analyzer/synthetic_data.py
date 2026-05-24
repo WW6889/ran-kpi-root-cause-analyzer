@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-
 SCENARIOS = {
     "Cell_001": "healthy",
     "Cell_002": "coverage",

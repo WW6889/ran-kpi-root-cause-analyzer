@@ -5,7 +5,6 @@ import pytest
 
 from ran_kpi_analyzer.data_loader import load_kpi_data
 from ran_kpi_analyzer.exceptions import DataValidationError
-
 from tests.helpers import kpi_row
 
 

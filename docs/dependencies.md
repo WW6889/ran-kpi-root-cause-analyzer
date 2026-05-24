@@ -1,23 +1,26 @@
 # Dependency List
 
-Runtime dependencies are pinned in `requirements.txt`:
+Runtime and development dependencies are declared in `pyproject.toml` and resolved in `uv.lock`.
 
-- `pandas==3.0.3`
-- `numpy==2.4.6`
-- `matplotlib==3.10.9`
-- `jinja2==3.1.6`
-- `scikit-learn==1.8.0`
-- `xgboost==3.2.0`
-- `shap==0.51.0`
+## Runtime Dependencies
 
-Development and QA dependencies are pinned in `requirements-dev.txt`:
+- `jinja2>=3.1,<4`
+- `matplotlib>=3.10,<4`
+- `numpy>=2.2,<3`
+- `pandas>=2.2,<4`
+- `scikit-learn>=1.6,<2`
+- `shap>=0.48,<0.52`
+- `xgboost>=3.0,<4`
+
+## Development Dependencies
+
+The `dev` dependency group contains:
 
 - `black==25.1.0`
-- `flake8==7.1.2`
 - `mypy==1.14.1`
+- `pre-commit==4.0.1`
 - `pytest==9.0.3`
 - `pytest-cov==6.0.0`
-- `pre-commit==4.0.1`
+- `ruff==0.8.6`
 
-The repository uses pinned dependencies to make local results and GitHub Actions behavior reproducible.
-
+Use `uv sync --all-groups` for a full local development environment. CI uses `uv sync --frozen --all-groups` to ensure the lockfile is honored.

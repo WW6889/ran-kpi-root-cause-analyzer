@@ -1,15 +1,18 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 25.1.0
+  - repo: local
     hooks:
       - id: black
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.1.2
-    hooks:
-      - id: flake8
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
-    hooks:
+        name: black
+        entry: uv run python -m black
+        language: system
+        types_or: [python, pyi]
+      - id: ruff
+        name: ruff
+        entry: uv run python -m ruff check --fix
+        language: system
+        types_or: [python, pyi]
       - id: mypy
-        additional_dependencies:
-          - pandas-stubs
+        name: mypy
+        entry: uv run python -m mypy
+        language: system
+        pass_filenames: false

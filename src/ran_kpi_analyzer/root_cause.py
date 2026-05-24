@@ -6,7 +6,6 @@ import pandas as pd
 
 from .config import DEFAULT_CONFIG, AnalyzerConfig
 
-
 ROOT_CAUSE_ACTIONS = {
     "coverage_limitation": [
         "Validate antenna azimuth, tilt, feeder health, and site power.",

@@ -10,7 +10,6 @@ from ran_kpi_analyzer.preprocessing import (
     aggregate_cell_kpis,
     clean_kpi_data,
 )
-
 from tests.helpers import kpi_row
 
 
