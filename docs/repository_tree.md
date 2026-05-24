@@ -55,7 +55,8 @@
 │       ├── synthetic_data.py
 │       └── visualization.py
 └── tests/
-    ├── conftest.py
+    ├── __init__.py
+    ├── helpers.py
     ├── test_anomaly_detection.py
     ├── test_data_loader.py
     ├── test_integration.py
@@ -64,4 +65,3 @@
     ├── test_root_cause.py
     └── test_synthetic_data.py
 ```
-

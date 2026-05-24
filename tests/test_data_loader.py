@@ -6,7 +6,7 @@ import pytest
 from ran_kpi_analyzer.data_loader import load_kpi_data
 from ran_kpi_analyzer.exceptions import DataValidationError
 
-from conftest import kpi_row
+from tests.helpers import kpi_row
 
 
 def test_load_kpi_data_rejects_missing_required_column(tmp_path):

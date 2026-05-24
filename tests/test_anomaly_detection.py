@@ -5,7 +5,7 @@ import pandas as pd
 from ran_kpi_analyzer.anomaly_detection import detect_anomalies
 from ran_kpi_analyzer.preprocessing import prepare_kpi_data
 
-from conftest import kpi_row
+from tests.helpers import kpi_row
 
 
 def test_detect_anomalies_adds_expected_outputs():

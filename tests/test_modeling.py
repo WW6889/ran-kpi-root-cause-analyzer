@@ -7,7 +7,7 @@ from ran_kpi_analyzer.modeling import train_degradation_model
 from ran_kpi_analyzer.preprocessing import prepare_kpi_data
 from ran_kpi_analyzer.root_cause import add_root_cause_labels
 
-from conftest import kpi_row
+from tests.helpers import kpi_row
 
 
 def test_train_degradation_model_returns_diagnostics_and_importance():

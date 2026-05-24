@@ -9,7 +9,7 @@ from ran_kpi_analyzer.root_cause import (
     summarize_root_causes,
 )
 
-from conftest import kpi_row
+from tests.helpers import kpi_row
 
 
 def _row(**updates):

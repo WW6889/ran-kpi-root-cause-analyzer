@@ -11,7 +11,7 @@ from ran_kpi_analyzer.preprocessing import (
     clean_kpi_data,
 )
 
-from conftest import kpi_row
+from tests.helpers import kpi_row
 
 
 def _frame():

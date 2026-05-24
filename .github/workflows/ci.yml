@@ -15,14 +15,15 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          python -m pip install -r requirements-dev.txt
+          python -m pip check
       - name: Check formatting
-        run: black --check src tests main.py
+        run: python -m black --check src tests main.py
       - name: Lint
-        run: flake8 src tests main.py
+        run: python -m flake8 src tests main.py
       - name: Type check
-        run: mypy
+        run: python -m mypy
       - name: Run tests with coverage
-        run: pytest
+        run: MPLCONFIGDIR=/tmp/matplotlib python -m pytest -vv
       - name: Generate example report
-        run: python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
+        run: MPLCONFIGDIR=/tmp/matplotlib python main.py --input data/raw/sample_ran_kpi_data.csv --output reports/example_report.html
